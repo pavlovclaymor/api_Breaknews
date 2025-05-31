@@ -1,21 +1,13 @@
-const express = require('express')
+import express from 'express'
+import userRoute from './src/routes/user.route.js'
+import connectDatabase from './src/database/db.js'
+
+
 const app = express()
+const port = 3000
 
-//Rota
-    //Method HTTP - CRUD (CREATE,READ,UPDATE,DELETE)
-        //Get - pega uma info
-        //Post - Cria uma info
-        //Put - altera toda a info
-        //Path - altera parte da info
-        //Delete - apaga uma info
-    //Name - Um identificador da rota
+connectDatabase()
+app.use(express.json());
+app.use("/user", userRoute)
 
-    //Function(Callback) - Resposnsavel por executar algum comando
-
-app.get('/soma',(req,res) => {
-    const soma = 100 + 1
-
-    res.json({soma: soma})
-})
-
-app.listen(3000)
+app.listen(port, ()=> console.log(`servidor rodando na porta ${port}`))

@@ -1,0 +1,4 @@
+root1234
+ 102.218.85.170 
+
+mongodb+srv://root:root1234@cluster0.pbixqqs.mongodb.net/
