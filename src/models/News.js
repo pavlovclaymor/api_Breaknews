@@ -1,4 +1,3 @@
-import { MongoGridFSChunkError } from 'mongodb'
 import mongoose from 'mongoose'
 
 const NewsSchema = new mongoose.Schema({
