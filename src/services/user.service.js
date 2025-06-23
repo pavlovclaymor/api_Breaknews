@@ -26,3 +26,4 @@ export default {
   findByIdService,
   userPatchService,
 };
+
