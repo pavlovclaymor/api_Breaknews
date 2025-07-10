@@ -9,7 +9,7 @@ const countNews = () => News.countDocuments();
 
 const topNewsService = () =>
   News.findOne()
-    .sort({ _id: -1 }) // ou sort({ createdAt: -1 }) se tiver timestamp
+    .sort({ _id: -1 })
     .populate("user");
 
 const findByIdService = (id) => News.findById(id).populate("user");
@@ -30,18 +30,37 @@ const updateServiceNews = (id, title, text, banner) =>
     { title, text, banner },
     { rawResult: true }
   );
- 
-const eraseService = (id) => News.findOneAndDelete({_id: id});
 
-const lineNewsService = (idNews, userId) => News.findOneAndUpdate(
-  { _id: idNews, "likes.userId": { $nin: [userId] } },
-  { $push: { likes: { userId, created: new Date() } } }
-)
+const eraseService = (id) => News.findOneAndDelete({ _id: id });
 
-const deleteLikeNewsService = (idNews, userId) => News.findOneAndUpdate(
- { _id: idNews},
- { $pull: { likes: { userId } } }
-)
+const lineNewsService = (idNews, userId) =>
+  News.findOneAndUpdate(
+    { _id: idNews, "likes.userId": { $nin: [userId] } },
+    { $push: { likes: { userId, created: new Date() } } }
+  );
+
+const deleteLikeNewsService = (idNews, userId) =>
+  News.findOneAndUpdate({ _id: idNews }, { $pull: { likes: { userId } } });
+
+const addComentService = (idNews, comment, userId) => {
+  let idComment = Math.floor(Date.now() * Math.random()).toString(36);
+
+  return News.findOneAndUpdate(
+    { _id: idNews },
+    {
+      $push: {
+        comments: { idComment, comment, userId, createdAt: new Date() },
+      },
+    }
+  );
+};
+
+const deleteCommentService = (idNews, idComment, userId) =>
+  News.findOneAndUpdate(
+    { _id: idNews },
+    { $pull: { comments: { idComment, userId } } }
+  );
+
 export {
   createServiceNews,
   findAllService,
@@ -53,5 +72,7 @@ export {
   updateServiceNews,
   eraseService,
   lineNewsService,
-  deleteLikeNewsService
+  deleteLikeNewsService,
+  addComentService,
+  deleteCommentService,
 };

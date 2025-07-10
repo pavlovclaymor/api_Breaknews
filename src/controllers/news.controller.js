@@ -9,7 +9,9 @@ import {
   updateServiceNews,
   eraseService,
   lineNewsService,
-  deleteLikeNewsService
+  deleteLikeNewsService,
+  addComentService,
+  deleteCommentService,
 } from "../services/news.service.js";
 
 const create = async (req, res) => {
@@ -166,9 +168,9 @@ const searchByTitle = async (req, res) => {
 const byUser = async (req, res) => {
   try {
     const id = req.userId;
-    const news = await byUserService(id)
+    const news = await byUserService(id);
 
-     return res.send({
+    return res.send({
       results: news.map((item) => ({
         id: item._id,
         title: item.title,
@@ -180,8 +182,7 @@ const byUser = async (req, res) => {
         userName: item.userName,
         useravatar: item.avatar,
       })),
-    })
-
+    });
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
@@ -199,21 +200,19 @@ const update = async (req, res) => {
 
     const news = await findByIdService(id);
 
-  
-    
     if (news.user._id.toString() != req.userId.toString())
       return res.status(401).send({ message: "Unauthorized" });
 
     await updateServiceNews(id, title, text, banner);
     res.status(200).send("Updated");
   } catch (err) {
-    res.status(500).send({ message: "update "+ err.message });
+    res.status(500).send({ message: "update " + err.message });
   }
 };
 
-const erase = async (req, res)=>{
+const erase = async (req, res) => {
   try {
-    const { id } = req.params
+    const { id } = req.params;
 
     const news = await findByIdService(id);
     if (news.user._id.toString() != req.userId.toString())
@@ -224,24 +223,73 @@ const erase = async (req, res)=>{
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
-}
+};
 
-const likeNews = async  (req,res)=>{
-  try{
-     const { id } = req.params;
-   const userId = req.userId;
+const likeNews = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.userId;
 
-   const newsLiked = await lineNewsService(id, userId);
+    const newsLiked = await lineNewsService(id, userId);
     if (!newsLiked) {
       await deleteLikeNewsService(id, userId);
-      res.status(201).send({message: "Disliked news"});
+      res.status(201).send({ message: "Disliked news" });
     }
     console.log(newsLiked);
 
-    res.status(200).send({message: "Liked news"});
+    res.status(200).send({ message: "Liked news" });
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
-}
+};
 
-export { create, findAll, topNews, findById, searchByTitle, byUser, update, erase, likeNews };
+const addComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const userId = req.userId;
+    const { comment } = req.body;
+
+    if (!comment)
+      return res.status(400).send({ message: "Write a message to comment" });
+
+    await addComentService(id, comment, userId);
+
+    res.status(201).send({ message: "Comment added sucessfull" });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const deleteComment = async (req, res) => {
+  try {
+    const { idNews, idComment } = req.params;
+    const userId = req.userId;
+
+   const commentDeleted =  await deleteCommentService(idNews, idComment, userId);
+
+   const commentFinder = commentDeleted.comments.find(comment => comment.idComment === idComment);
+   
+   if(!commentFinder) return res.status(400).send({ message: "comment is not exist" });
+
+    if( commentFinder.userId !== userId )
+      return  res.status(400).send({ message: "comment it not yours" });
+    res.status(201).send({ message: "Comment removed sucessfull" });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export {
+  create,
+  findAll,
+  topNews,
+  findById,
+  searchByTitle,
+  byUser,
+  update,
+  erase,
+  likeNews,
+  addComment,
+  deleteComment,
+};
