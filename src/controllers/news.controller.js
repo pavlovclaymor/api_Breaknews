@@ -6,6 +6,10 @@ import {
   findByIdService,
   searchByTitleService,
   byUserService,
+  updateServiceNews,
+  eraseService,
+  lineNewsService,
+  deleteLikeNewsService
 } from "../services/news.service.js";
 
 const create = async (req, res) => {
@@ -183,4 +187,61 @@ const byUser = async (req, res) => {
   }
 };
 
-export { create, findAll, topNews, findById, searchByTitle, byUser };
+const update = async (req, res) => {
+  try {
+    const { title, text, banner } = req.body;
+    const { id } = req.params;
+
+    if (!title && !text && !banner)
+      return res
+        .status(400)
+        .send({ message: "Submit least one field for registration" });
+
+    const news = await findByIdService(id);
+
+  
+    
+    if (news.user._id.toString() != req.userId.toString())
+      return res.status(401).send({ message: "Unauthorized" });
+
+    await updateServiceNews(id, title, text, banner);
+    res.status(200).send("Updated");
+  } catch (err) {
+    res.status(500).send({ message: "update "+ err.message });
+  }
+};
+
+const erase = async (req, res)=>{
+  try {
+    const { id } = req.params
+
+    const news = await findByIdService(id);
+    if (news.user._id.toString() != req.userId.toString())
+      return res.status(401).send({ message: "You did't delete this news" });
+
+    await eraseService(id);
+    return res.send("Deleted news");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+}
+
+const likeNews = async  (req,res)=>{
+  try{
+     const { id } = req.params;
+   const userId = req.userId;
+
+   const newsLiked = await lineNewsService(id, userId);
+    if (!newsLiked) {
+      await deleteLikeNewsService(id, userId);
+      res.status(201).send({message: "Disliked news"});
+    }
+    console.log(newsLiked);
+
+    res.status(200).send({message: "Liked news"});
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+}
+
+export { create, findAll, topNews, findById, searchByTitle, byUser, update, erase, likeNews };
